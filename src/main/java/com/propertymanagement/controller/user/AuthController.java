@@ -1,6 +1,7 @@
 package com.propertymanagement.controller.user;
 
-import com.propertymanagement.controller.user.RegisterRequest;
+import com.propertymanagement.model.LoginRequest;
+import com.propertymanagement.model.RegisterRequest;
 import com.propertymanagement.model.User;
 import com.propertymanagement.repository.UserRepository;
 import com.propertymanagement.util.JwtUtil;

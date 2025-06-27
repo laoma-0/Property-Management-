@@ -1,4 +1,4 @@
-package com.propertymanagement.controller.user;
+package com.propertymanagement.model;
 import lombok.Data;
 
 @Data

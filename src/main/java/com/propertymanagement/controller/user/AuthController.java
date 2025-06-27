@@ -1,6 +1,8 @@
-package com.propertymanagement.controller;
+package com.propertymanagement.controller.user;
 
+import com.propertymanagement.controller.user.RegisterRequest;
 import com.propertymanagement.model.User;
+import com.propertymanagement.repository.UserRepository;
 import com.propertymanagement.util.JwtUtil;
 import com.propertymanagement.service.impl.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,33 +10,40 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    
+
     @Autowired
     private AuthenticationManager authenticationManager;
-    
+
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
-    
+
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @PostMapping("/login")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody LoginRequest loginRequest) throws Exception {
-        System.out.println("Received login request: username = " + loginRequest.getUsername() + ", password = " + loginRequest.getPassword());
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
             );
         } catch (Exception e) {
-            System.out.println("Authentication failed: " + e.getMessage());
             throw new Exception("Incorrect username or password", e);
         }
 
@@ -47,26 +56,28 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
-}
 
-class LoginRequest {
-    private String username;
-    private String password;
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
+        // 检查用户名是否已存在
+        Optional<User> existingUser = userRepository.findByUsername(registerRequest.getUsername());
+        if (existingUser.isPresent()) {
+            return ResponseEntity.badRequest().body("Username already exists");
+        }
 
-    // Getters and setters
-    public String getUsername() {
-        return username;
-    }
+        // 创建新用户
+        User newUser = new User();
+        newUser.setUsername(registerRequest.getUsername());
+        // 加密密码
+        newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        newUser.setPhone(registerRequest.getPhone());
+        newUser.setEmail(registerRequest.getEmail());
+        newUser.setRole(registerRequest.getRole());
+        newUser.setCreateTime(LocalDateTime.now());
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+        // 保存用户到数据库
+        userRepository.save(newUser);
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+        return ResponseEntity.ok("User registered successfully");
     }
 }

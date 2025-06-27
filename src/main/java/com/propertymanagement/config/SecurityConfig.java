@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/auth/login").permitAll()
+                .antMatchers("/api/auth/login","/api/auth/register").permitAll()
                 // 允许访问 Swagger UI 和 OpenAPI JSON 文档
                 .antMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated();

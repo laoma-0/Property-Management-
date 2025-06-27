@@ -1,9 +1,12 @@
 package com.propertymanagement.util;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
+import java.util.Base64;
 import java.util.Date;
 
 @Component
@@ -13,27 +16,40 @@ public class JwtUtil {
     private String secret;
 
     @Value("${jwt.expiration}")
+    private void parseExpiration(String expirationStr) {
+        this.expiration = Long.parseLong(expirationStr);
+    }
+
     private long expiration;
 
+    private SecretKey getSecretKey() {
+        byte[] keyBytes = Base64.getDecoder().decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
     public String generateToken(String username) {
+        SecretKey secretKey = getSecretKey();
         return Jwts.builder()
                 .setSubject(username)
                 .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000))
-                .signWith(SignatureAlgorithm.HS512, secret.getBytes()) // 修改此处
+                .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
     public String extractUsername(String token) {
-        return Jwts.parser()
-                .setSigningKey(secret.getBytes()) // 修改此处
+        SecretKey secretKey = getSecretKey();
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
     }
 
     public boolean validateToken(String token) {
+        SecretKey secretKey = getSecretKey();
         try {
-            Jwts.parser().setSigningKey(secret.getBytes()).parseClaimsJws(token); // 修改此处
+            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;

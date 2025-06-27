@@ -11,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -29,11 +30,10 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/auth/login","/api/auth/register").permitAll()
-                // 允许访问 Swagger UI 和 OpenAPI JSON 文档
-                .antMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers(new AntPathRequestMatcher("/api/auth/login"),
+                        new AntPathRequestMatcher("/swagger-ui/**"),
+                        new AntPathRequestMatcher("/v3/api-docs/**")).permitAll()
                 .anyRequest().authenticated();
-
 
         return http.build();
     }

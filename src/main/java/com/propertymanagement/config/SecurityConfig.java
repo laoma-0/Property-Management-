@@ -38,7 +38,8 @@ public class SecurityConfig {
                                 "/configuration/**",
                                 "/error",
                                 "/favicon.ico",
-                                "/.well-known/**"
+                                "/.well-known/**",
+                                "/rapi-doc.html"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );

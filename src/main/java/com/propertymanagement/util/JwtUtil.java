@@ -8,36 +8,32 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-    
+
     @Value("${jwt.secret}")
     private String secret;
-    
+
     @Value("${jwt.expiration}")
-    private void parseExpiration(String expirationStr) {
-        this.expiration = Long.parseLong(expirationStr);
-    }
-    
     private long expiration;
-    
+
     public String generateToken(String username) {
         return Jwts.builder()
-            .setSubject(username)
-            .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000))
-            .signWith(SignatureAlgorithm.HS512, secret)
-            .compact();
+                .setSubject(username)
+                .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000))
+                .signWith(SignatureAlgorithm.HS512, secret.getBytes()) // 修改此处
+                .compact();
     }
-    
+
     public String extractUsername(String token) {
         return Jwts.parser()
-            .setSigningKey(secret)
-            .parseClaimsJws(token)
-            .getBody()
-            .getSubject();
+                .setSigningKey(secret.getBytes()) // 修改此处
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
-    
+
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
+            Jwts.parser().setSigningKey(secret.getBytes()).parseClaimsJws(token); // 修改此处
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
